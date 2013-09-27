@@ -1,30 +1,40 @@
 <?php
-// Default Values
-$defaults = array(
-  'parent' => '@parent',
-  'site' => 'gsbpublic',
-  'remote-user' => 'gsbpublic',
-  'path-aliases' => array(
-    '%drush-script' => 'drush5',
-  ),
-);
+// We only need aliases the first time through.
+if (stristr($aliasname, '.')) {
+  // Default Values
+  $defaults = array(
+    'parent' => '@parent',
+    'site' => '[site]',
+    'env' => '[env]',
+    'root' => '/var/www/html/[site].[env]/docroot',
+    'remote-host' => '[server].prod.hosting.acquia.com',
+    'remote-user' => '[site]',
+    'path-aliases' => array(
+      '%drush-script' => 'drush5',
+    ),
+  );
 
-// Our servers and environments
-$servers = array(
-  'staging-1530' => array('dev', 'dev2', 'sandbox'),
-  'ded-2036' => array('test', 'test2'),
-  'ded-1505' => array('loadtest'),
-  'ded-1528' => array('prod'),
-);
+  // Our D7 servers and environments
+  $d7_sites = array('gsbpublic', 'gsbalumni', 'gsbmygsb', 'sford');
+  $d7_servers = array(
+    'staging-1530' => array('dev', 'dev2', 'sandbox'),
+    'ded-2036' => array('test', 'test2'),
+    'ded-1505' => array('loadtest'),
+    'ded-1528' => array('prod'),
+  );
+  $d7_sites = array_fill_keys($d7_sites, $d7_servers);
 
-// Build the aliases
-foreach ($servers as $server => $environments) {
-  foreach($environments as $env) {
-    $alias = str_replace('test', 'stage', $env);
-    $aliases[$alias] = $defaults + array(
-      'root' => '/var/www/html/' . $defaults['site'] . '.' . $env . '/docroot',
-      'env' => $env,
-      'remote-host' => $server . '.prod.hosting.acquia.com',
-    );
+  // Combine all our sites.
+  $sites = $d7_sites;
+
+  // Split on the alias.
+  list($site, $alias) = explode('.', $aliasname);
+  // Build the aliases
+  foreach ($sites[$site] as $server => $environments) {
+    foreach($environments as $env) {
+      $alias = str_replace('test', 'stage', $env);
+      $aliases[$alias] = str_replace(array('[site]', '[env]', '[server]'), array($site, $env, $server), $defaults);
+    }
   }
 }
+
