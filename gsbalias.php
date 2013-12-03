@@ -71,7 +71,9 @@ $site = !empty($sites[$parent]['site']) ? $sites[$parent]['site'] : $parent;
 
 foreach ($sites[$parent]['servers'] as $server => $environments) {
   foreach ($environments as $env) {
-    $alias = str_replace('test', 'stage', $env);
+    if (strpos($alias, 'test') === 0) {
+      $alias = str_replace('test', 'stage', $env);
+    }
     $aliases[$alias] = str_replace(array('[site]', '[env]', '[server]', '[uri]'), array($site, $env, $server, $uri), $defaults);
   }
 }
